@@ -18,12 +18,13 @@ Omni Info Radar 是一个个性化技术情报雷达。它从微信公众号、G
 
 ## 项目受众
 
-- 希望减少信息噪声、快速获取每日技术动态的开发者和技术从业者。
-- 需要持续跟踪 GitHub、AI、学术论文、产品更新或安全资讯的研究者与团队。
-- 希望通过飞书、企业微信、微信或 QQ 自动接收技术简报的用户。
-- 本地运行需要 Python 3.10+；使用 AI 增强、微信公众号或消息推送时，需要自行配置相应服务的凭证。
+- 📈 **创业者｜抢先捕捉产业风向**：每日追踪 AI 热点、产品动态与行业近况，从海量资讯中快速发现值得关注的技术信号和潜在机会。
+- 💻 **技术开发者｜高效掌握前沿技术**：聚合 GitHub Trending、大厂技术博客、安全资讯与热门项目，减少信息检索时间，及时跟进技术生态变化。
+- 🎓 **在读学生｜持续获取论文灵感**：精选 arXiv 论文、研究进展与高质量技术内容，为课程学习、科研选题和论文阅读提供线索。
+- 🧭 **产品经理｜洞察产品与市场趋势**：集中了解主流 AI 产品更新、开源项目和用户关注方向，为产品规划与创新决策提供参考。
+- 🧠 **技术团队｜打造专属情报雷达**：通过关注词过滤噪声，并将每日简报推送至飞书、企业微信、微信或 QQ，让关键信息主动抵达。
 
-快速开始：
+## 快速开始：
 
 ```bash
 git clone https://github.com/JOJOCrazy123/omni-info-radar.git
@@ -31,9 +32,11 @@ cd omni-info-radar
 uv sync
 uv run repo-courier --channels all --dry-run
 ```
+> 本地运行需要 Python 3.10+；使用 AI 增强、微信公众号或消息推送功能时，需要自行配置对应服务的凭证。
 
 ## 在线阅读
 
+🚧 **建设中**
 
 ## 目录
 
@@ -52,22 +55,24 @@ uv run repo-courier --channels all --dry-run
 
 | 姓名 | 职责 | 简介 |
 | :---- | :---- | :---- |
-| jjyaoao | 项目作者 |  |
-| JOJOCrazy123 | 贡献者 |  |
-| Sizhou Chen | 贡献者 |  |
-| Hanchen Qiu | 贡献者 |  |
-| 翰晨 | 贡献者 |  |
+| Sizhou Chen | 项目负责人 | Datawhale 核心成员 |
+| Hanchen Qiu | 核心贡献者 | 🎓 **SE 在读 ing** |
 
 ## 参与贡献
 
-- 如果发现问题或有功能建议，欢迎提交 Issue。
-- 如果希望参与项目开发，欢迎提交 Pull Request。
-- 提交代码前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+- 如果你发现了一些问题，可以提交 Issue 进行反馈；如果长时间没有回复，可以联系 [Datawhale 保姆团队](https://github.com/datawhalechina/DOPMC/blob/main/OP.md)协助跟进。
+- 如果你想参与贡献本项目，可以提交 Pull Request；提交代码前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+- 如果你对 Datawhale 感兴趣并希望发起新的开源项目，请参考 [Datawhale 开源项目指南](https://github.com/datawhalechina/DOPMC/blob/main/GUIDE.md)。
 - 请勿将 Token、API Key、Webhook 或 SendKey 提交到 Git。
 
 ## 关注我们
 
+<div align="center">
+  <p>扫描下方二维码，关注公众号：Datawhale</p>
+  <img src="https://raw.githubusercontent.com/datawhalechina/pumpkin-book/master/res/qrcode.jpeg" alt="Datawhale 公众号二维码" width="180" height="180">
+</div>
 
 ## LICENSE
 
-[MIT License](LICENSE)
+<a rel="license" href="LICENSE"><img alt="MIT License" style="border-width:0" src="https://img.shields.io/badge/license-MIT-green.svg"></a><br>
+本项目采用 <a rel="license" href="LICENSE">MIT License</a> 进行许可。
