@@ -10,6 +10,18 @@ uv.lock
 .DS_Store
 dist/
 build/
-.qoder
+# Local generated reports and runtime data
 /reports/
 /data/
+
+# Version-controlled example reports and data
+!/example_reports/
+!/example_reports/**
+!/example_data/
+!/example_data/**
+/example_reports/.DS_Store
+
+# Independent web hosting repository
+/web-host/
+
+.qoder
