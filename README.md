@@ -27,7 +27,7 @@ Omni Info Radar 是一个个性化技术情报雷达。它从微信公众号、G
 ## 快速开始：
 
 ```bash
-git clone https://github.com/JOJOCrazy123/omni-info-radar.git
+git clone https://github.com/datawhalechina/omni-info-radar.git
 cd omni-info-radar
 uv sync
 uv run repo-courier --channels all --dry-run
@@ -55,8 +55,8 @@ uv run repo-courier --channels all --dry-run
 
 | 姓名 | 职责 | 简介 |
 | :---- | :---- | :---- |
-| Sizhou Chen | 项目负责人 | Datawhale 核心成员 |
-| Hanchen Qiu | 核心贡献者 | 🎓 **SE 在读 ing** |
+| Sizhou Chen | 项目负责人，核心贡献者 | [Datawhale 核心成员](https://github.com/jjyaoao) |
+| Hanchen Qiu | 项目负责人，核心贡献者 | [在读SE的🏓选手](https://github.com/JOJOCrazy123) |
 
 ## 参与贡献
 
