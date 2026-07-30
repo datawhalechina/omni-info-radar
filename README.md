@@ -2,6 +2,8 @@
 
 > [!CAUTION]
 > ⚠️ Alpha 内测版本警告：此为早期构建版本，功能仍在持续完善，可能存在错误或不兼容变更，欢迎通过 Issue 反馈问题或建议。
+> 内测链接：🔗https://omni-info-radar.fun-mesa-3136.chatgpt.site
+> 公众号AK获取链接：🔗https://down.mptext.top/dashboard/api
 
 Omni Info Radar 是一个个性化技术情报雷达。它从微信公众号、GitHub、科技新闻、大厂博客、学术论文、产品更新和安全资讯等公开来源收集候选内容，再根据关注词进行去噪与排序，生成每日精选报告。
 
