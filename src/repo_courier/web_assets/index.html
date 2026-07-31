@@ -14,103 +14,104 @@
 
     <div class="page-shell">
       <header class="site-header">
-        <a class="brand" href="/" aria-label="RepoCourier 首页">
+        <a class="brand" href="/" aria-label="RepoCourier 首页" data-i18n-aria-label="brandAria">
           <span class="brand-mark" aria-hidden="true"><span></span></span>
           <span class="brand-copy"><strong>RepoCourier</strong><small>DAILY SIGNAL DESK</small></span>
         </a>
         <div class="header-actions">
           <span class="live-pill"><i></i> Web Beta</span>
-          <a href="https://github.com/jjyaoao/repo-courier" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+          <button id="language-toggle" class="language-toggle" type="button" aria-label="Switch to English" title="Switch to English"><span aria-hidden="true">文</span><strong>EN</strong></button>
+          <a href="https://github.com/datawhalechina/omni-info-radar" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
         </div>
       </header>
 
       <main>
         <section class="hero compact-hero">
-          <p class="eyebrow">PERSONAL TECH BRIEFING</p>
-          <h1>七个技术频道，只留<em>今天值得看的</em></h1>
-          <p class="hero-copy">选频道、写关注词，RepoCourier 自动抓取、去噪并生成一份个人技术日报。</p>
+          <p class="eyebrow" data-i18n="heroEyebrow">PERSONAL TECH BRIEFING</p>
+          <h1><span data-i18n="heroTitleLead">七个技术频道，只留</span> <em data-i18n="heroTitleAccent">今天值得看的</em></h1>
+          <p class="hero-copy" data-i18n="heroCopy">选频道、写关注词，RepoCourier 自动抓取、去噪并生成一份个人技术日报。</p>
         </section>
 
         <section class="desk" aria-labelledby="desk-title">
           <div class="desk-heading">
-            <h2 id="desk-title">定制今日情报</h2>
-            <p>默认无需 Key</p>
+            <h2 id="desk-title" data-i18n="deskTitle">定制今日情报</h2>
+            <p data-i18n="noKeyDefault">默认无需 Key</p>
           </div>
 
           <form id="preview-form" class="config-card">
             <fieldset class="form-section source-section">
-              <legend>内容频道 <small>可多选</small></legend>
+              <legend><span data-i18n="channelsLegend">内容频道</span> <small data-i18n="multiSelect">可多选</small></legend>
               <div id="source-grid" class="source-grid" aria-live="polite">
-                <div class="source-loading">正在读取频道…</div>
+                <div class="source-loading" data-i18n="loadingChannels">正在读取频道…</div>
               </div>
             </fieldset>
 
             <fieldset class="form-section interest-section">
-              <legend>关注方向 <small>使用逗号分隔</small></legend>
+              <legend><span data-i18n="interestsLegend">关注方向</span> <small data-i18n="commaSeparated">使用逗号分隔</small></legend>
               <div class="interest-row">
                 <div class="field-block interest-field">
-                  <label class="sr-only" for="interests">关注词</label>
+                  <label class="sr-only" for="interests" data-i18n="interestsLabel">关注词</label>
                   <input id="interests" name="interests" maxlength="420" placeholder="agent, llm, mcp, ai" value="agent, llm, mcp, ai" required />
                 </div>
                 <div class="field-block language-field">
-                  <label class="sr-only" for="language">GitHub 语言筛选</label>
+                  <label class="sr-only" for="language" data-i18n="githubLanguageLabel">GitHub 语言筛选</label>
                   <select id="language" name="language">
-                    <option value="">全部语言</option><option value="python">Python</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="go">Go</option><option value="rust">Rust</option><option value="java">Java</option>
+                    <option value="" data-i18n="allLanguages">全部语言</option><option value="python">Python</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="go">Go</option><option value="rust">Rust</option><option value="java">Java</option>
                   </select>
                 </div>
               </div>
             </fieldset>
 
             <fieldset class="form-section key-section">
-              <legend>访问凭证 <small>按所选频道填写</small></legend>
+              <legend><span data-i18n="credentialsLegend">访问凭证</span> <small data-i18n="credentialsHint">按所选频道填写</small></legend>
               <div class="key-list">
                 <details class="key-panel">
-                  <summary><span class="key-provider"><b>GH</b><span><strong>GitHub Token</strong><small>提高限额与补全信息</small></span></span><span class="key-action">添加 <i aria-hidden="true"></i></span></summary>
+                  <summary><span class="key-provider"><b>GH</b><span><strong>GitHub Token</strong><small data-i18n="githubTokenHint">提高限额与补全信息</small></span></span><span class="key-action"><span data-i18n="add">添加</span> <i aria-hidden="true"></i></span></summary>
                   <div class="key-fields">
                     <label class="field-label" for="github-token">Fine-grained token</label>
-                    <div class="password-wrap"><input id="github-token" name="github-token" type="password" autocomplete="off" placeholder="github_pat_..." /><button class="reveal-key" type="button" data-target="github-token">显示</button></div>
-                    <p>公开仓库只需 Metadata 和 Contents 的只读权限。</p>
+                    <div class="password-wrap"><input id="github-token" name="github-token" type="password" autocomplete="off" placeholder="github_pat_..." /><button class="reveal-key" type="button" data-target="github-token" data-i18n="show">显示</button></div>
+                    <p data-i18n="githubTokenNote">公开仓库只需 Metadata 和 Contents 的只读权限。</p>
                   </div>
                 </details>
                 <details id="wechat-key-panel" class="key-panel">
-                  <summary><span class="key-provider"><b>微</b><span><strong>微信公众号 API</strong><small id="wechat-key-summary">读取预设公众号文章</small></span></span><span id="wechat-key-action" class="key-action">添加 <i aria-hidden="true"></i></span></summary>
+                  <summary><span class="key-provider"><b data-i18n="wechatMark">微</b><span><strong data-i18n="wechatApi">微信公众号 API</strong><small id="wechat-key-summary">读取预设公众号文章</small></span></span><span id="wechat-key-action" class="key-action"><span data-key-action-label>添加</span> <i aria-hidden="true"></i></span></summary>
                   <div class="key-fields">
                     <label class="field-label" for="wechat-auth-key">API Key</label>
-                    <div class="password-wrap"><input id="wechat-auth-key" name="wechat-auth-key" type="password" autocomplete="off" placeholder="微信公众号抓取服务 API Key" /><button class="reveal-key" type="button" data-target="wechat-auth-key">显示</button></div>
-                    <p id="wechat-key-note">选择微信公众号频道时使用。可前往 <a href="https://down.mptext.top/dashboard/api" target="_blank" rel="noreferrer">mptext API 控制台 ↗</a> 获取。</p>
+                    <div class="password-wrap"><input id="wechat-auth-key" name="wechat-auth-key" type="password" autocomplete="off" placeholder="微信公众号抓取服务 API Key" data-i18n-placeholder="wechatKeyPlaceholder" /><button class="reveal-key" type="button" data-target="wechat-auth-key" data-i18n="show">显示</button></div>
+                    <p id="wechat-key-note"></p>
                   </div>
                 </details>
                 <details class="key-panel">
-                  <summary><span class="key-provider"><b>AI</b><span><strong>OpenAI 兼容 AI</strong><small>接入兼容 Chat Completions 的模型</small></span></span><span class="key-action">添加 <i aria-hidden="true"></i></span></summary>
+                  <summary><span class="key-provider"><b>AI</b><span><strong data-i18n="compatibleAi">OpenAI 兼容 AI</strong><small data-i18n="compatibleAiHint">接入兼容 Chat Completions 的模型</small></span></span><span class="key-action"><span data-i18n="add">添加</span> <i aria-hidden="true"></i></span></summary>
                   <div class="key-fields">
                     <div class="field-block ai-provider-field">
-                      <label class="field-label" for="ai-provider">模型服务商</label>
+                      <label class="field-label" for="ai-provider" data-i18n="modelProvider">模型服务商</label>
                       <select id="ai-provider" name="ai-provider">
                         <option value="openai">OpenAI</option>
                         <option value="claude">Claude</option>
-                        <option value="zhipu">智谱 GLM</option>
+                        <option value="zhipu" data-i18n="zhipuProvider">智谱 GLM</option>
                         <option value="kimi">Kimi</option>
                         <option value="minimax">MiniMax</option>
-                        <option value="stepfun">阶跃星辰</option>
-                        <option value="custom">自定义兼容服务</option>
+                        <option value="stepfun" data-i18n="stepfunProvider">阶跃星辰</option>
+                        <option value="custom" data-i18n="customProvider">自定义兼容服务</option>
                       </select>
                     </div>
-                    <label class="field-label" for="ai-base-url">API 根地址或 Chat Completions 地址</label>
+                    <label class="field-label" for="ai-base-url" data-i18n="apiBaseUrl">API 根地址或 Chat Completions 地址</label>
                     <input id="ai-base-url" name="ai-base-url" type="url" value="https://api.openai.com/v1" placeholder="https://api.example.com/v1" autocomplete="off" />
                     <p id="ai-compatibility-note" class="ai-compatibility-note">已适配 OpenAI 的 Chat Completions 接口；仍可修改模型名称。</p>
                     <div class="field-row compact-row">
-                      <div class="field-block"><label class="field-label" for="ai-model">模型名称</label><input id="ai-model" name="ai-model" autocomplete="off" placeholder="your-model-name" /></div>
-                      <div class="field-block"><label class="field-label" for="ai-api-key">API Key</label><div class="password-wrap"><input id="ai-api-key" name="ai-api-key" type="password" autocomplete="off" placeholder="sk-..." /><button class="reveal-key" type="button" data-target="ai-api-key">显示</button></div></div>
+                      <div class="field-block"><label class="field-label" for="ai-model" data-i18n="modelName">模型名称</label><input id="ai-model" name="ai-model" autocomplete="off" placeholder="your-model-name" /></div>
+                      <div class="field-block"><label class="field-label" for="ai-api-key">API Key</label><div class="password-wrap"><input id="ai-api-key" name="ai-api-key" type="password" autocomplete="off" placeholder="sk-..." /><button class="reveal-key" type="button" data-target="ai-api-key" data-i18n="show">显示</button></div></div>
                     </div>
                   </div>
                 </details>
               </div>
-              <p class="privacy-note"><span aria-hidden="true">●</span> 密钥只保留在当前页面，不会保存到服务端；刷新后清除</p>
+              <p class="privacy-note"><span aria-hidden="true">●</span> <span data-i18n="privacyNote">密钥只保留在当前页面，不会保存到服务端；刷新后清除</span></p>
             </fieldset>
 
             <div class="submit-row">
-              <p>已选 <span id="selected-source-count">1</span> 个频道 · 每个精选 3 条</p>
-              <button id="submit-button" class="primary-button" type="submit"><span>生成我的今日情报</span><i aria-hidden="true">→</i></button>
+              <p><span data-i18n="selectedPrefix">已选</span> <span id="selected-source-count">1</span> <span data-i18n="selectedSuffix">个频道 · 每个精选 3 条</span></p>
+              <button id="submit-button" class="primary-button" type="submit"><span data-i18n="generate">生成我的今日情报</span><i aria-hidden="true">→</i></button>
             </div>
             <p id="form-error" class="form-error" role="alert" hidden></p>
           </form>
@@ -118,20 +119,20 @@
 
         <section id="loading" class="loading-state" hidden aria-live="polite">
           <div class="loading-orbit"><span></span><i></i></div>
-          <div><strong id="progress-title">正在准备今日情报……</strong><p>完成一个频道，就立即展示一个频道</p></div>
+          <div><strong id="progress-title" data-i18n="preparing">正在准备今日情报……</strong><p data-i18n="streamHint">完成一个频道，就立即展示一个频道</p></div>
           <small id="progress-summary">0 / 0</small>
-          <div id="channel-progress" class="channel-progress" aria-label="频道处理进度"></div>
+          <div id="channel-progress" class="channel-progress" aria-label="频道处理进度" data-i18n-aria-label="progressAria"></div>
         </section>
 
         <section id="results" class="results" hidden aria-labelledby="results-title">
-          <div class="results-heading"><div><p class="eyebrow"><span>03</span> YOUR DAILY SIGNALS</p><h2 id="results-title">今天值得看的</h2></div><p id="scan-summary" class="scan-summary"></p></div>
+          <div class="results-heading"><div><p class="eyebrow"><span>03</span> <span data-i18n="signalsEyebrow">YOUR DAILY SIGNALS</span></p><h2 id="results-title" data-i18n="resultsTitle">今天值得看的</h2></div><p id="scan-summary" class="scan-summary"></p></div>
           <div id="github-results" class="result-channel" hidden><div class="channel-title"><span class="channel-icon">GH</span><h3>GitHub Trending</h3><i></i></div><div id="result-list" class="result-list"></div></div>
           <div id="channel-results"></div>
-          <div id="empty-result" class="empty-result" hidden><span aria-hidden="true">∅</span><h3 id="empty-result-title">今天没有足够相关的信号</h3><p id="empty-result-description">可以放宽关注词，或选择更多频道后重试。</p></div>
+          <div id="empty-result" class="empty-result" hidden><span aria-hidden="true">∅</span><h3 id="empty-result-title" data-i18n="emptyTitle">今天没有足够相关的信号</h3><p id="empty-result-description" data-i18n="emptyDescription">可以放宽关注词，或选择更多频道后重试。</p></div>
         </section>
       </main>
 
-      <footer><div><strong>RepoCourier</strong><span>·</span><span>Open-source personal tech radar</span></div><p>信息可以很多，今天值得看的只需几条。</p></footer>
+      <footer><div><strong>RepoCourier</strong><span>·</span><span>Open-source personal tech radar</span></div><p data-i18n="footerCopy">信息可以很多，今天值得看的只需几条。</p></footer>
     </div>
   </body>
 </html>

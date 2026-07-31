@@ -33,7 +33,7 @@ RepoCourier 不是又一个大而全的信息搜集器。它先从多个公开�
 需要 Python 3.10+ 和 [uv](https://docs.astral.sh/uv/)。
 
 ```bash
-git clone https://github.com/jjyaoao/repo-courier.git
+git clone https://github.com/datawhalechina/omni-info-radar.git
 cd repo-courier
 uv sync
 uv run repo-courier --channels all --dry-run

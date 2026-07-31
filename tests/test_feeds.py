@@ -319,6 +319,27 @@ def test_analyzer_invalid_response_falls_back_and_combined_score_uses_40_60() ->
     assert combined_score(item) == 69.6
 
 
+def test_rss_fallback_supports_english_output() -> None:
+    item = _item(matched_keywords=["agent"], feed_summary="Original feed summary")
+    analyzer = RssAnalyzer(
+        RepoLlmConfig(),
+        RssDefaultsConfig(),
+        load_prompt_builder("repo_courier.prompts.news:build_messages"),
+    )
+
+    analyzer.analyze(
+        item,
+        ProfileConfig(
+            interests=["agent"],
+            exclude_keywords=[],
+            output_language="en",
+        ),
+    )
+
+    assert item.recommendation_reason == "Matched interests: agent."
+    assert item.summary == "Original feed summary"
+
+
 def test_all_five_prompt_builders_are_dynamically_loadable() -> None:
     for channel in ("news", "blogs", "academic", "products", "security"):
         builder = load_prompt_builder(f"repo_courier.prompts.{channel}:build_messages")

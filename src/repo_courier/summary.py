@@ -45,8 +45,14 @@ class Summarizer:
             }
             for item in repositories
         ]
+        output_rule = (
+            "Use concise English for every natural-language value."
+            if self.config.output_language == "en"
+            else "所有自然语言字段使用简洁中文。"
+        )
         system = (
-            "你是资深开源项目分析师。根据给定事实做简洁、克制的中文分析，不得臆造。"
+            "你是资深开源项目分析师。根据给定事实做简洁、克制的分析，不得臆造。"
+            f"{output_rule}"
             "只返回 JSON 数组。每项字段必须为 full_name, summary, highlights, use_cases, "
             "category, risk_note；highlights 和 use_cases 是各 1-3 条的字符串数组。"
             "risk_note 只填写明确、具体且会影响采用决策的风险，没有则返回空字符串；"
@@ -93,19 +99,32 @@ class Summarizer:
         cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip())
         return json.loads(cleaned)
 
-    @staticmethod
-    def _fallback(repository: Repository) -> None:
-        topic_text = "、".join(repository.topics[:4])
+    def _fallback(self, repository: Repository) -> None:
+        english = self.config.output_language == "en"
+        topic_text = (", " if english else "、").join(repository.topics[:4])
         description = repository.description.strip().rstrip("。.")
-        repository.summary = description or f"一个以 {repository.language} 为主的开源项目"
-        repository.highlights = [
-            f"今日新增约 {repository.stars_today:,} Stars",
-            f"主要语言：{repository.language}",
-        ]
+        repository.summary = description or (
+            f"An open-source project primarily written in {repository.language}"
+            if english
+            else f"一个以 {repository.language} 为主的开源项目"
+        )
+        repository.highlights = (
+            [
+                f"About {repository.stars_today:,} new Stars today",
+                f"Primary language: {repository.language}",
+            ]
+            if english
+            else [
+                f"今日新增约 {repository.stars_today:,} Stars",
+                f"主要语言：{repository.language}",
+            ]
+        )
         if topic_text:
-            repository.highlights.append(f"关键词：{topic_text}")
-        repository.use_cases = _infer_use_cases(repository)
-        repository.category = _infer_category(repository)
+            repository.highlights.append(
+                f"Topics: {topic_text}" if english else f"关键词：{topic_text}"
+            )
+        repository.use_cases = _infer_use_cases(repository, english=english)
+        repository.category = _infer_category(repository, english=english)
         repository.risk_note = ""
         repository.analysis_status = "fallback"
 
@@ -116,7 +135,7 @@ def _strings(value: object) -> list[str]:
     return [str(item).strip() for item in value if str(item).strip()][:3]
 
 
-def _infer_category(repository: Repository) -> str:
+def _infer_category(repository: Repository, *, english: bool = False) -> str:
     text = " ".join(
         [repository.name, repository.description, repository.language, *repository.topics]
     ).lower()
@@ -130,11 +149,20 @@ def _infer_category(repository: Repository) -> str:
     ]
     for category, keywords in categories:
         if any(keyword in text for keyword in keywords):
-            return category
-    return "其他"
+            if not english:
+                return category
+            return {
+                "AI / 机器学习": "AI / Machine Learning",
+                "开发工具": "Developer Tools",
+                "Web / 应用": "Web / Applications",
+                "数据 / 基础设施": "Data / Infrastructure",
+                "安全": "Security",
+                "学习资源": "Learning Resources",
+            }[category]
+    return "Other" if english else "其他"
 
 
-def _infer_use_cases(repository: Repository) -> list[str]:
+def _infer_use_cases(repository: Repository, *, english: bool = False) -> list[str]:
     category = _infer_category(repository)
     mapping = {
         "AI / 机器学习": ["AI 原型验证与能力集成"],
@@ -145,4 +173,14 @@ def _infer_use_cases(repository: Repository) -> list[str]:
         "学习资源": ["系统学习与团队知识库建设"],
         "其他": ["技术调研与开源方案选型"],
     }
-    return mapping[category]
+    if not english:
+        return mapping[category]
+    return {
+        "AI / 机器学习": ["AI prototyping and capability integration"],
+        "开发工具": ["Improve development, debugging, or automation workflows"],
+        "Web / 应用": ["Web product development and technology evaluation"],
+        "数据 / 基础设施": ["Data processing or infrastructure engineering"],
+        "安全": ["Security research and defensive engineering"],
+        "学习资源": ["Structured learning and team knowledge bases"],
+        "其他": ["Technology research and open-source evaluation"],
+    }[category]

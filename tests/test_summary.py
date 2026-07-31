@@ -24,6 +24,27 @@ def test_fallback_summary_without_ai_credentials() -> None:
     assert repository.analysis_status == "fallback"
 
 
+def test_fallback_summary_supports_english_output() -> None:
+    repository = Repository(
+        rank=1,
+        owner="acme",
+        name="agent-kit",
+        url="https://github.com/acme/agent-kit",
+        language="Python",
+        stars_today=321,
+        topics=["llm", "agent"],
+    )
+
+    Summarizer(
+        RepoLlmConfig(model="", api_key="", output_language="en")
+    ).summarize([repository])
+
+    assert repository.summary == "An open-source project primarily written in Python"
+    assert repository.category == "AI / Machine Learning"
+    assert any("Primary language" in item for item in repository.highlights)
+    assert repository.use_cases == ["AI prototyping and capability integration"]
+
+
 def test_summary_uses_shared_chat_completions_url_directly() -> None:
     class Response:
         def raise_for_status(self) -> None:

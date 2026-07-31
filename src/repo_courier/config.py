@@ -29,6 +29,7 @@ class RepoLlmConfig:
     api_key: str = ""
     base_url: str = "https://api.openai.com/v1/chat/completions"
     model: str = ""
+    output_language: str = "zh"
     verify_ssl: bool = True
     timeout_seconds: float = 90.0
 
@@ -40,6 +41,7 @@ class ProfileConfig:
         default_factory=lambda: ["awesome list", "interview", "tutorial collection"]
     )
     daily_picks: int = 3
+    output_language: str = "zh"
 
 
 @dataclass(frozen=True, slots=True)
