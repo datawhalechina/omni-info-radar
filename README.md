@@ -13,7 +13,7 @@ Omni Info Radar 是一个个性化技术情报雷达。它从微信公众号、G
 - 支持通过关键词筛选，并可选使用 OpenAI Chat Completions 兼容接口增强分析。
 - 未配置 AI API Key 时，自动使用本地规则完成摘要和排序。
 - 支持生成 Markdown、HTML 和 JSON 报告。
-- 支持推送到飞书、企业微信、个人微信和 QQ。
+- 支持推送到飞书、企业微信、个人微信、QQ 和邮箱。
 - 提供命令行工具和 Web Beta 页面。
 
 <p align="center">
@@ -49,7 +49,7 @@ uv run repo-courier --channels all --dry-run
 | [情报采集](src/repo_courier) | 聚合 GitHub Trending、微信公众号以及 RSS / Atom 信息源 | ✅ |
 | [个性化分析](src/repo_courier/personalize.py) | 按关注词筛选、去噪和排序，并支持可选的 AI 增强分析 | ✅ |
 | [报告生成](src/repo_courier/report.py) | 生成 Markdown、HTML 和 JSON 格式的每日简报 | ✅ |
-| [消息推送](src/repo_courier/pushers) | 支持飞书、企业微信、Server酱和 OneBot | ✅ |
+| [消息推送](src/repo_courier/pushers) | 支持飞书、企业微信、Server酱、OneBot 和 SMTP 邮箱 | ✅ |
 | [Web Beta](src/repo_courier/web.py) | 提供多频道选择、流式展示和自定义模型配置页面 | 🧪 |
 | [自动化任务](.github/workflows/daily.yml) | 通过 GitHub Actions 定时生成并推送报告 | ✅ |
 | [配置文件](config/config.yaml) | 管理关注方向、频道开关和 RSS / Atom 信息源 | ✅ |

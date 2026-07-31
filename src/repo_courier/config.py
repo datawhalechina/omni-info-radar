@@ -110,6 +110,12 @@ class PushConfig:
     onebot_url: str = ""
     onebot_token: str = ""
     onebot_user_id: str = ""
+    email_smtp_host: str = ""
+    email_smtp_port: int = 465
+    email_username: str = ""
+    email_auth_code: str = ""
+    email_to: str = ""
+    email_use_ssl: bool = True
 
 
 @dataclass(slots=True)
@@ -153,6 +159,16 @@ def load_config(path: str | Path = "config/config.yaml") -> AppConfig:
     push.onebot_url = _env("ONEBOT_URL", push.onebot_url)
     push.onebot_token = _env("ONEBOT_TOKEN", push.onebot_token)
     push.onebot_user_id = _env("ONEBOT_USER_ID", push.onebot_user_id)
+    push.email_smtp_host = _env("EMAIL_SMTP_HOST", push.email_smtp_host)
+    push.email_username = _env("EMAIL_USERNAME", push.email_username)
+    push.email_auth_code = _env("EMAIL_AUTH_CODE", push.email_auth_code)
+    push.email_to = _env("EMAIL_TO", push.email_to)
+    smtp_port = os.getenv("EMAIL_SMTP_PORT", "")
+    if smtp_port:
+        push.email_smtp_port = _positive_int(smtp_port, "EMAIL_SMTP_PORT")
+    use_ssl = os.getenv("EMAIL_USE_SSL", "")
+    if use_ssl:
+        push.email_use_ssl = _env_bool("EMAIL_USE_SSL", use_ssl)
     interests = os.getenv("REPO_COURIER_INTERESTS", "")
     if interests:
         profile.interests = [item.strip() for item in interests.split(",") if item.strip()]
@@ -306,6 +322,15 @@ def _known(cls: type[Any], values: dict[str, Any]) -> dict[str, Any]:
 
 def _env(name: str, default: str) -> str:
     return os.getenv(name) or default
+
+
+def _env_bool(name: str, value: str) -> bool:
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"环境变量 {name} 必须是布尔值，当前值: {value!r}")
 
 
 def _positive_int(value: object, name: str) -> int:

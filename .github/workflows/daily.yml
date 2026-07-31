@@ -38,4 +38,10 @@ jobs:
           ONEBOT_URL: ${{ secrets.ONEBOT_URL }}
           ONEBOT_TOKEN: ${{ secrets.ONEBOT_TOKEN }}
           ONEBOT_USER_ID: ${{ secrets.ONEBOT_USER_ID }}
+          EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_AUTH_CODE: ${{ secrets.EMAIL_AUTH_CODE }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_USE_SSL: ${{ secrets.EMAIL_USE_SSL }}
         run: repo-courier --config config/config.yaml
