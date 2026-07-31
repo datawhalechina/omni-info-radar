@@ -26,6 +26,7 @@ def test_default_config_loads_five_unique_rss_channels() -> None:
     assert config.report.product_display_names["openai-codex"] == "OpenAI Codex"
     assert config.wechat.enabled is True
     assert len(config.wechat.accounts) == 6
+    assert config.wechat.content_api_fallback_enabled is False
     assert config.wechat.verify_ssl is False
     assert config.wechat.content_max_chars == 5000
 
@@ -92,6 +93,14 @@ wechat:
 
     config_file.write_text("wechat: {verify_ssl: nope}\n", encoding="utf-8")
     with pytest.raises(ValueError, match="wechat.verify_ssl 必须是布尔值"):
+        load_config(config_file)
+
+    config_file.write_text(
+        "wechat: {content_api_fallback_enabled: nope}\n", encoding="utf-8"
+    )
+    with pytest.raises(
+        ValueError, match="wechat.content_api_fallback_enabled 必须是布尔值"
+    ):
         load_config(config_file)
 
 

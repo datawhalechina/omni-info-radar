@@ -15,9 +15,11 @@ from repo_courier.config import (
 )
 from repo_courier.feeds import BEIJING, SearchWindow
 from repo_courier.wechat import (
+    MAX_CONTENT_FETCH_WORKERS,
     WechatArticle,
     WechatPipeline,
     _article_objects,
+    _extract_article_text,
     _raise_for_status,
 )
 
@@ -45,6 +47,7 @@ class FakeClient:
         self.articles = articles
         self.contents = contents
         self.article_calls: list[tuple[str, int]] = []
+        self.content_calls: list[dict[str, object]] = []
 
     def get(self, url, *, params, headers=None):
         if url.endswith("/article"):
@@ -52,7 +55,9 @@ class FakeClient:
             self.article_calls.append(key)
             value = self.articles.get(key, {"articles": []})
             return value if isinstance(value, Response) else Response(value)
-        value = self.contents[str(params["url"])]
+        article_url = str(params.get("url") or url)
+        self.content_calls.append({"request_url": url, **params})
+        value = self.contents[article_url]
         return value if isinstance(value, Response) else Response(text=str(value))
 
 
@@ -177,6 +182,78 @@ def test_download_content_truncates_to_configured_character_limit() -> None:
     pipeline = WechatPipeline(config(account), RssDefaultsConfig(), RepoLlmConfig(), client=client)
 
     assert len(pipeline._download_content(article)) == 5000
+    assert client.content_calls == [{"request_url": article.url}]
+
+
+def test_article_text_is_extracted_from_wechat_content_without_page_chrome() -> None:
+    document = """
+    <html><body>
+      <h1>Page title</h1>
+      <section id="js_content">
+        <p>First paragraph</p>
+        <script>tracking()</script>
+        <p>Second <strong>paragraph</strong></p>
+      </section>
+      <footer>Unrelated footer</footer>
+    </body></html>
+    """
+
+    assert _extract_article_text(document) == (
+        "First paragraph\nSecond\nparagraph"
+    )
+
+
+def test_article_text_falls_back_to_plain_response_content() -> None:
+    assert _extract_article_text("plain article content") == "plain article content"
+
+
+def test_article_text_rejects_html_without_wechat_content() -> None:
+    assert _extract_article_text("<html><body>Access verification</body></html>") == ""
+
+
+def test_content_api_fallback_is_disabled_by_default() -> None:
+    account = WechatAccountConfig("One", "fake-1")
+    article = WechatArticle(
+        account,
+        "Title",
+        "https://mp.weixin.qq.com/s/blocked",
+        datetime(2026, 7, 17, tzinfo=BEIJING),
+    )
+    client = FakeClient({}, {article.url: "<html><body>Access verification</body></html>"})
+    pipeline = WechatPipeline(config(account), RssDefaultsConfig(), RepoLlmConfig(), client=client)
+
+    assert pipeline._download_content(article) == ""
+    assert client.content_calls == [{"request_url": article.url}]
+
+
+def test_enabled_content_api_fallback_uses_html_download() -> None:
+    account = WechatAccountConfig("One", "fake-1")
+    article = WechatArticle(
+        account,
+        "Title",
+        "https://mp.weixin.qq.com/s/blocked",
+        datetime(2026, 7, 17, tzinfo=BEIJING),
+    )
+
+    class FallbackClient:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def get(self, url, *, params, headers=None):
+            self.calls.append((url, params, headers))
+            if url == article.url:
+                return Response(text="<html><body>Access verification</body></html>")
+            return Response(text='<section id="js_content"><p>Fallback content</p></section>')
+
+    client = FallbackClient()
+    wechat_config = config(account)
+    wechat_config.content_api_fallback_enabled = True
+    pipeline = WechatPipeline(
+        wechat_config, RssDefaultsConfig(), RepoLlmConfig(), client=client
+    )
+
+    assert pipeline._download_content(article) == "Fallback content"
+    assert client.calls[1][1] == {"url": article.url, "format": "html"}
 
 
 def test_wechat_ssl_verification_setting_only_configures_its_http_client(monkeypatch) -> None:
@@ -242,7 +319,9 @@ def test_repeated_page_and_account_error_are_isolated() -> None:
 class ConcurrentClient:
     def __init__(self, article_accounts: int = 0, content_articles: int = 0) -> None:
         self.article_barrier = threading.Barrier(min(article_accounts, 10))
-        self.content_barrier = threading.Barrier(min(content_articles, 10))
+        self.content_barrier = threading.Barrier(
+            min(content_articles, MAX_CONTENT_FETCH_WORKERS)
+        )
         self.lock = threading.Lock()
         self.article_active = 0
         self.article_max = 0
@@ -261,18 +340,19 @@ class ConcurrentClient:
                 self.article_active -= 1
             return Response({"articles": []})
 
-        index = int(str(params["url"]).rsplit("/", 1)[-1])
+        article_url = str(params.get("url") or url)
+        index = int(article_url.rsplit("/", 1)[-1])
         with self.lock:
             self.content_active += 1
             self.content_max = max(self.content_max, self.content_active)
-        if index < 10:
+        if index < MAX_CONTENT_FETCH_WORKERS:
             self.content_barrier.wait(timeout=2)
         with self.lock:
             self.content_active -= 1
         return Response(text="content")
 
 
-def test_account_and_content_fetches_are_parallel_and_bounded_to_ten_workers() -> None:
+def test_account_and_content_fetches_are_parallel_and_bounded() -> None:
     accounts = [WechatAccountConfig(f"Account {index}", f"fake-{index}") for index in range(12)]
     client = ConcurrentClient(article_accounts=12, content_articles=12)
     pipeline = WechatPipeline(
@@ -298,4 +378,4 @@ def test_account_and_content_fetches_are_parallel_and_bounded_to_ten_workers() -
         content_articles, ProfileConfig(interests=[], exclude_keywords=[]), errors
     )
     assert len(items) == 12
-    assert client.content_max == 10
+    assert client.content_max == MAX_CONTENT_FETCH_WORKERS

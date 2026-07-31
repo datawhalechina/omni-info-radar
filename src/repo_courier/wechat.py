@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol
 
 import httpx
+from bs4 import BeautifulSoup
 
 from .config import (
     ProfileConfig,
@@ -30,7 +32,14 @@ logger = logging.getLogger(__name__)
 CHANNEL_ID = "wechat"
 PAGE_SIZE = 20
 MAX_FETCH_WORKERS = 10
+MAX_CONTENT_FETCH_WORKERS = 3
+MAX_DOWNLOAD_ATTEMPTS = 3
 USER_AGENT = "RepoCourier/0.1 (WeChat article reader)"
+BROWSER_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/138.0.0.0 Safari/537.36"
+)
 
 
 class WechatResponse(Protocol):
@@ -173,7 +182,7 @@ class WechatPipeline:
         errors: dict[str, str],
     ) -> list[RssItem]:
         items: list[RssItem] = []
-        workers = max(1, min(len(articles) or 1, MAX_FETCH_WORKERS))
+        workers = max(1, min(len(articles) or 1, MAX_CONTENT_FETCH_WORKERS))
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = {
                 executor.submit(self._download_content, article): (index, article)
@@ -209,12 +218,57 @@ class WechatPipeline:
         return items
 
     def _download_content(self, article: WechatArticle) -> str:
-        response = self.client.get(
-            f"{self.config.api_base_url}/download",
-            params={"url": article.url, "format": "text"},
-        )
-        _raise_for_status(response)
-        return response.text.strip()[: self.config.content_max_chars]
+        try:
+            response = self.client.get(
+                article.url,
+                params={},
+                headers={"User-Agent": BROWSER_USER_AGENT},
+            )
+            _raise_for_status(response)
+            content = _extract_article_text(response.text)
+            if content:
+                return content[: self.config.content_max_chars]
+        except httpx.HTTPError as exc:
+            logger.debug("[wechat] 直接读取正文失败 %s：%s", article.url, exc)
+
+        if not self.config.content_api_fallback_enabled:
+            return ""
+        logger.debug("[wechat] 改用正文下载 API：%s", article.url)
+
+        for attempt in range(MAX_DOWNLOAD_ATTEMPTS):
+            response = self.client.get(
+                f"{self.config.api_base_url}/download",
+                params={"url": article.url, "format": "html"},
+            )
+            try:
+                _raise_for_status(response)
+            except httpx.HTTPStatusError as exc:
+                if (
+                    exc.response.status_code != httpx.codes.TOO_MANY_REQUESTS
+                    or attempt == MAX_DOWNLOAD_ATTEMPTS - 1
+                ):
+                    raise
+                retry_after = exc.response.headers.get("Retry-After", "")
+                try:
+                    delay = float(retry_after)
+                except ValueError:
+                    delay = 2**attempt
+                time.sleep(max(0.5, min(delay, 5.0)))
+                continue
+            return _extract_article_text(response.text)[: self.config.content_max_chars]
+        raise RuntimeError("微信公众号正文下载重试次数已耗尽")
+
+
+def _extract_article_text(document: str) -> str:
+    soup = BeautifulSoup(document, "html.parser")
+    content = soup.select_one("#js_content")
+    if content is None:
+        if soup.find(("html", "body")) is not None:
+            return ""
+        return soup.get_text("\n", strip=True)
+    for node in content.select("script, style, noscript"):
+        node.decompose()
+    return "\n".join(content.stripped_strings)
 
 
 def _raise_for_status(response: WechatResponse) -> None:

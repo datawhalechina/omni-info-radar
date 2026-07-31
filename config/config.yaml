@@ -78,7 +78,7 @@ rss:
           name: arXiv AI · NLP · CV · ML
           url: https://rss.arxiv.org/rss/cs.AI+cs.CL+cs.CV+cs.LG
     products:
-      title: 产品更新
+      title: AI产品更新
       enabled: true
       prompt: repo_courier.prompts.products:build_messages
       sources:
@@ -116,6 +116,8 @@ wechat:
   enabled: true
   title: 微信公众号
   api_base_url: https://down.mptext.top/api/public/v1
+  # 直读微信 HTML 失败后，是否调用 mptext 正文下载 API；免费账号建议保持关闭
+  content_api_fallback_enabled: false
   verify_ssl: false
   content_max_chars: 5000
   prompt: repo_courier.prompts.wechat:build_messages

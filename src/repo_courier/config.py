@@ -87,6 +87,7 @@ class WechatConfig:
     enabled: bool = False
     title: str = "微信公众号"
     api_base_url: str = "https://down.mptext.top/api/public/v1"
+    content_api_fallback_enabled: bool = False
     verify_ssl: bool = True
     content_max_chars: int = 5000
     prompt: str = "repo_courier.prompts.wechat:build_messages"
@@ -179,6 +180,8 @@ def _wechat_config(values: dict[str, Any]) -> WechatConfig:
     config = WechatConfig(**scalar_values)
     if not isinstance(config.enabled, bool):
         raise ValueError("配置 wechat.enabled 必须是布尔值")
+    if not isinstance(config.content_api_fallback_enabled, bool):
+        raise ValueError("配置 wechat.content_api_fallback_enabled 必须是布尔值")
     if not isinstance(config.verify_ssl, bool):
         raise ValueError("配置 wechat.verify_ssl 必须是布尔值")
     config.title = config.title.strip()

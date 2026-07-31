@@ -44,13 +44,14 @@ def _channel(channel_id: str, title: str) -> ChannelRun:
     return ChannelRun(channel_id, title, [item], 10, 10)
 
 
-def test_writer_outputs_github_and_five_dynamic_rss_sections(tmp_path) -> None:
+def test_writer_outputs_sections_in_fixed_html_order(tmp_path) -> None:
     channels = dict(
         [
             ("news", _channel("news", "科技新闻")),
+            ("wechat", _channel("wechat", "微信公众号")),
             ("blogs", _channel("blogs", "大厂博客")),
             ("academic", _channel("academic", "学术论文")),
-            ("products", _channel("products", "产品更新")),
+            ("products", _channel("products", "AI产品更新")),
             ("security", _channel("security", "安全资讯")),
         ]
     )
@@ -74,6 +75,17 @@ def test_writer_outputs_github_and_five_dynamic_rss_sections(tmp_path) -> None:
     assert "<!doctype html>" in html_report
     assert "/100" not in html_report
     assert "/10" not in html_report
+    html_headings = [
+        "微信公众号",
+        "GitHub 推荐",
+        "学术论文",
+        "大厂博客",
+        "AI产品更新",
+        "科技新闻",
+        "安全资讯",
+    ]
+    html_positions = [html_report.index(f"<h1>{heading}</h1>") for heading in html_headings]
+    assert html_positions == sorted(html_positions)
     payload = json.loads(paths["json"].read_text(encoding="utf-8"))
     assert payload["repositories"][0]["full_name"] == "acme/rocket"
     assert list(payload["rss_channels"]) == list(channels)
