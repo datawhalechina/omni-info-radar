@@ -50,6 +50,39 @@ def test_environment_overrides_yaml(tmp_path, monkeypatch) -> None:
     assert config.wechat.auth_key == "wechat-secret"
 
 
+def test_email_push_env_overrides(tmp_path, monkeypatch) -> None:
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text("push: {email_smtp_port: 465}\n", encoding="utf-8")
+    monkeypatch.setenv("EMAIL_SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("EMAIL_SMTP_PORT", "587")
+    monkeypatch.setenv("EMAIL_USERNAME", "sender@example.com")
+    monkeypatch.setenv("EMAIL_AUTH_CODE", "auth-code")
+    monkeypatch.setenv("EMAIL_TO", "a@example.com,b@example.com")
+    monkeypatch.setenv("EMAIL_USE_SSL", "false")
+
+    config = load_config(config_file)
+
+    assert config.push.email_smtp_host == "smtp.example.com"
+    assert config.push.email_smtp_port == 587
+    assert config.push.email_username == "sender@example.com"
+    assert config.push.email_auth_code == "auth-code"
+    assert config.push.email_to == "a@example.com,b@example.com"
+    assert config.push.email_use_ssl is False
+
+
+def test_email_push_env_rejects_invalid_values(tmp_path, monkeypatch) -> None:
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text("", encoding="utf-8")
+    monkeypatch.setenv("EMAIL_USE_SSL", "nope")
+    with pytest.raises(ValueError, match="EMAIL_USE_SSL 必须是布尔值"):
+        load_config(config_file)
+
+    monkeypatch.setenv("EMAIL_USE_SSL", "true")
+    monkeypatch.setenv("EMAIL_SMTP_PORT", "abc")
+    with pytest.raises(ValueError, match="EMAIL_SMTP_PORT"):
+        load_config(config_file)
+
+
 def test_wechat_accounts_are_validated(tmp_path) -> None:
     config_file = tmp_path / "config.yaml"
     config_file.write_text(

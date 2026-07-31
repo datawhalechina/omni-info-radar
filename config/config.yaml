@@ -147,3 +147,5 @@ report:
 
 push:
   enabled: true
+  # 邮箱 SMTP 推送通过环境变量配置（见 .env.example）：
+  # EMAIL_SMTP_HOST / EMAIL_SMTP_PORT / EMAIL_USERNAME / EMAIL_AUTH_CODE / EMAIL_TO / EMAIL_USE_SSL
