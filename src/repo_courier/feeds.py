@@ -171,7 +171,7 @@ class RssAnalyzer:
         except ValueError:
             raise
         if not (self.llm.enabled and self.llm.api_key and self.llm.model):
-            self.fallback(item)
+            self.fallback(item, profile)
             return
         try:
             response = self.client.post(
@@ -194,11 +194,10 @@ class RssAnalyzer:
             item.innovation_score = _score(payload.get("innovation_score"))
             summary = str(payload.get("summary") or "").strip()
             reason = str(payload.get("recommendation_reason") or "").strip()
-            if (
-                not summary
-                or not reason
-                or not _contains_chinese(summary)
-                or not _contains_chinese(reason)
+            if not summary or not reason:
+                raise ValueError("LLM 必须返回内容概要和推荐理由")
+            if profile.output_language == "zh" and (
+                not _contains_chinese(summary) or not _contains_chinese(reason)
             ):
                 raise ValueError("LLM 必须返回中文内容概要和推荐理由")
             item.summary = _truncate(summary, 200)
@@ -206,15 +205,25 @@ class RssAnalyzer:
             item.analysis_status = "ai"
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             logger.warning("[RSS/LLM] %s 分析失败，使用规则回退：%s", item.entry_id, exc)
-            self.fallback(item)
+            self.fallback(item, profile)
 
     @staticmethod
-    def fallback(item: RssItem) -> None:
+    def fallback(item: RssItem, profile: ProfileConfig) -> None:
         item.analysis_status = "fallback"
         item.relevance_score = max(0, min(10, round(item.rule_score / 10)))
         item.innovation_score = 0
-        matched = "、".join(item.matched_keywords[:3])
-        item.recommendation_reason = f"命中关注词：{matched}。" if matched else "根据规则排序入选。"
+        separator = ", " if profile.output_language == "en" else "、"
+        matched = separator.join(item.matched_keywords[:3])
+        if profile.output_language == "en":
+            item.recommendation_reason = (
+                f"Matched interests: {matched}."
+                if matched
+                else "Selected by local relevance rules."
+            )
+        else:
+            item.recommendation_reason = (
+                f"命中关注词：{matched}。" if matched else "根据规则排序入选。"
+            )
         item.summary = _truncate(item.feed_summary or item.content_excerpt or item.title, 200)
 
 

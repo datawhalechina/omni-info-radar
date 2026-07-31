@@ -50,6 +50,18 @@ def test_preview_request_cleans_interests_and_sources() -> None:
 
     assert payload.interests == ["Agent", "developer tools"]
     assert payload.sources == ["github", "news"]
+    assert payload.ui_language == "zh"
+
+
+def test_preview_request_accepts_only_supported_ui_languages() -> None:
+    assert web.PreviewRequest(interests=["agent"], ui_language=" EN ").ui_language == "en"
+
+    try:
+        web.PreviewRequest(interests=["agent"], ui_language="fr")
+    except ValueError as exc:
+        assert "界面语言" in str(exc)
+    else:
+        raise AssertionError("不支持的界面语言应被拒绝")
 
 
 def test_source_options_follow_configured_rss_channels() -> None:
@@ -73,6 +85,11 @@ def test_source_options_include_wechat_only_when_accounts_are_configured() -> No
 
     config.wechat.auth_key = "server-secret"
     assert web.source_options(config)[0]["requires_key"] is False
+
+
+def test_product_display_name_removes_release_feed_suffix() -> None:
+    assert web.product_display_name("Claude Code Releases") == "Claude Code"
+    assert web.product_display_name("OpenAI Codex Release") == "OpenAI Codex"
 
 
 def test_wechat_source_requires_request_or_server_key() -> None:
@@ -132,10 +149,12 @@ def test_generate_preview_uses_request_scoped_config(monkeypatch) -> None:
     config = captured["config"]
     assert config.profile.interests == ["agent"]
     assert config.profile.daily_picks == 3
+    assert config.profile.output_language == "zh"
     assert config.github.token == "github-secret"
     assert config.wechat.auth_key == "wechat-secret"
     assert config.repo_llm.enabled is False
     assert config.repo_llm.api_key == ""
+    assert config.repo_llm.output_language == "zh"
     assert config.push.enabled is False
     assert captured["kwargs"] == {"dry_run": True, "channels": ["github"]}
     assert result["repositories"][0]["full_name"] == "acme/agent-kit"
@@ -184,6 +203,47 @@ def test_generate_preview_serializes_rss_channels(monkeypatch) -> None:
     assert result["channels"][0]["id"] == "news"
     assert result["channels"][0]["items"][0]["source_name"] == "WIRED"
     assert result["used_ai"] is True
+
+
+def test_generate_preview_serializes_product_name_and_version(monkeypatch) -> None:
+    item = RssItem(
+        channel_id="products",
+        source_id="claude-code",
+        source_name="Claude Code Releases",
+        entry_id="v2.1.212",
+        title="v2.1.212",
+        url="https://example.com/releases/v2.1.212",
+        summary="Release summary",
+        recommendation_reason="Matched agent.",
+        analysis_status="fallback",
+        pick_rank=1,
+    )
+    channel = ChannelRun("products", "产品更新", [item], 3, 3)
+    config = config_with_news()
+    config.rss.channels["products"] = RssChannelConfig(
+        "products",
+        "产品更新",
+        "repo_courier.prompts.products:build_messages",
+        sources=[RssSourceConfig("claude-code", "Claude Code Releases", "https://example.com")],
+    )
+
+    monkeypatch.setattr(web, "load_web_config", lambda: config)
+    monkeypatch.setattr(
+        web,
+        "run",
+        lambda config, **kwargs: SimpleNamespace(
+            repositories=[], rss_channels={"products": channel}, scanned_count=0
+        ),
+    )
+
+    result = web.generate_preview(
+        web.PreviewRequest(interests=["agent"], sources=["products"], ui_language="en")
+    )
+    product = result["channels"][0]["items"][0]
+
+    assert product["product_name"] == "Claude Code"
+    assert product["version"] == "v2.1.212"
+    assert product["title"] == "v2.1.212"
 
 
 def test_unknown_source_is_rejected(monkeypatch) -> None:
@@ -467,6 +527,8 @@ def test_web_home_health_and_options_are_available() -> None:
 
     assert home.status_code == 200
     assert "七个技术频道" in home.text
+    assert 'id="language-toggle"' in home.text
+    assert "github.com/datawhalechina/omni-info-radar" in home.text
     assert health.json() == {"status": "ok"}
     assert {source["id"] for source in options.json()["sources"]} == {
         "github",

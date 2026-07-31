@@ -47,6 +47,7 @@ class PreviewRequest(BaseModel):
     ai_base_url: str = Field(default=DEFAULT_AI_BASE_URL, max_length=300)
     ai_model: str = Field(default="", max_length=120)
     ai_api_key: SecretStr | None = Field(default=None, max_length=500)
+    ui_language: str = Field(default="zh", max_length=8)
 
     @field_validator("interests")
     @classmethod
@@ -70,6 +71,14 @@ class PreviewRequest(BaseModel):
         normalized = value.strip().lower()
         if normalized not in SUPPORTED_LANGUAGES:
             raise ValueError("不支持该语言筛选")
+        return normalized
+
+    @field_validator("ui_language")
+    @classmethod
+    def supported_ui_language(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"zh", "en"}:
+            raise ValueError("界面语言仅支持 zh 或 en")
         return normalized
 
     @field_validator("sources")
@@ -116,6 +125,10 @@ def source_options(config: AppConfig | None = None) -> list[dict[str, object]]:
         for channel in config.rss.channels.values()
     )
     return options
+
+
+def product_display_name(source_name: str) -> str:
+    return re.sub(r"\s+Releases?$", "", source_name, flags=re.IGNORECASE).strip() or source_name
 
 
 def normalize_ai_endpoint(value: str) -> str:
@@ -191,6 +204,7 @@ def generate_preview(payload: PreviewRequest) -> dict[str, object]:
     wechat_auth_key = validate_wechat_settings(payload, config)
     config.profile.interests = payload.interests
     config.profile.daily_picks = 3
+    config.profile.output_language = payload.ui_language
     config.github.language = payload.language
     if github_token:
         config.github.token = github_token
@@ -200,6 +214,7 @@ def generate_preview(payload: PreviewRequest) -> dict[str, object]:
     config.repo_llm.api_key = api_key
     config.repo_llm.base_url = base_url or DEFAULT_AI_ENDPOINT
     config.repo_llm.model = model
+    config.repo_llm.output_language = payload.ui_language
     # Keep public previews bounded even when the self-hosted config is more ambitious.
     config.rss.defaults.max_items_per_source = min(config.rss.defaults.max_items_per_source, 4)
     config.rss.defaults.llm_candidates = min(config.rss.defaults.llm_candidates, 4)
@@ -231,8 +246,20 @@ def generate_preview(payload: PreviewRequest) -> dict[str, object]:
             "forks": item.forks,
             "license": item.license,
             "relevance_score": item.relevance_score,
-            "recommendation": item.recommendation,
-            "why_for_you": item.why_for_you,
+            "recommendation": (
+                {"深挖": "Explore", "关注": "Watch", "略过": "Skip"}.get(
+                    item.recommendation, item.recommendation
+                )
+                if payload.ui_language == "en"
+                else item.recommendation
+            ),
+            "why_for_you": (
+                "Matches your interests: "
+                f"{', '.join(item.matched_interests[:3])}; "
+                f"about {item.stars_today:,} new Stars today."
+                if payload.ui_language == "en" and item.matched_interests
+                else item.why_for_you
+            ),
             "matched_interests": item.matched_interests,
             "highlights": item.highlights,
             "use_cases": item.use_cases,
@@ -279,6 +306,12 @@ def generate_preview(payload: PreviewRequest) -> dict[str, object]:
                         "rank": item.pick_rank,
                         "source_id": item.source_id,
                         "source_name": item.source_name,
+                        "product_name": (
+                            product_display_name(item.source_name)
+                            if channel.channel_id == "products"
+                            else ""
+                        ),
+                        "version": item.title if channel.channel_id == "products" else "",
                         "title": item.title,
                         "url": item.url,
                         "summary": item.summary,

@@ -10,7 +10,7 @@ from .config import GitHubConfig
 from .models import Repository
 
 TRENDING_URL = "https://github.com/trending"
-USER_AGENT = "RepoCourier/0.1 (+https://github.com/jjyaoao/repo-courier)"
+USER_AGENT = "RepoCourier/0.1 (+https://github.com/datawhalechina/omni-info-radar)"
 
 
 def _count(value: str) -> int:

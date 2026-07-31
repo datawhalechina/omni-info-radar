@@ -173,6 +173,45 @@ a {
   text-decoration: none;
 }
 
+.language-toggle {
+  display: inline-flex;
+  min-height: 34px;
+  gap: 6px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.language-toggle:hover {
+  border-color: var(--green);
+  background: #f0f8eb;
+}
+
+.language-toggle:focus-visible {
+  outline: 3px solid rgba(23, 108, 76, 0.2);
+  outline-offset: 2px;
+}
+
+.language-toggle:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.language-toggle span {
+  color: var(--green);
+  font-size: 13px;
+}
+
+.language-toggle strong {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
 .live-pill {
   display: inline-flex;
   gap: 8px;
@@ -1263,6 +1302,11 @@ select:focus {
   white-space: nowrap;
 }
 
+.product-version strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
 .wechat-source {
   display: inline-flex;
   overflow: hidden;
@@ -1762,6 +1806,17 @@ footer p {
   font-size: clamp(38px, 4.8vw, 50px);
   line-height: 1.04;
   white-space: nowrap;
+}
+
+html[lang="en"] .compact-hero {
+  max-width: 1040px;
+}
+
+html[lang="en"] .compact-hero h1 {
+  max-width: 980px;
+  font-size: clamp(36px, 4.2vw, 48px);
+  line-height: 1.03;
+  white-space: normal;
 }
 
 .compact-hero .hero-copy {
