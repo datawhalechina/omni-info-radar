@@ -101,6 +101,9 @@ class ChannelRun:
     scanned_count: int
     llm_candidate_count: int
     errors: dict[str, str] = field(default_factory=dict)
+    # 完整已打分候选池（含入选与被淘汰的近邻负例），仅用于离线评测导出，
+    # 不参与 to_dict()，因此不影响 daily.json / daily.md / daily.html 与推送。
+    candidates: list[RssItem] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -110,6 +113,9 @@ class ChannelRun:
             "llm_candidate_count": self.llm_candidate_count,
             "errors": self.errors,
         }
+
+    def candidates_to_dict(self) -> list[dict[str, Any]]:
+        return [item.to_dict() for item in self.candidates]
 
 
 @dataclass(slots=True)

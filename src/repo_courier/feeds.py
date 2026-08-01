@@ -352,7 +352,17 @@ def analyze_channel_items(
         len(shortlist),
         len(picks),
     )
-    return ChannelRun(channel_id, title, picks, len(items), len(shortlist), errors)
+    # shortlist 是完整已打分候选池：picks 是其中被选中的对象引用（已写回 pick_rank），
+    # 其余为被淘汰的近邻负例。整体导出供离线评测计算 precision/recall 与难负例。
+    return ChannelRun(
+        channel_id,
+        title,
+        picks,
+        len(items),
+        len(shortlist),
+        errors,
+        candidates=list(shortlist),
+    )
 
 
 def _select_with_keyword_coverage(
