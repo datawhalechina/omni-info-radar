@@ -2,7 +2,8 @@
 
 来源：
 - reports/*/eval_candidates.json —— 需开启 report.eval_dump（或 REPO_COURIER_EVAL_DUMP=on），
-  提供 GitHub 全量打分项目 + 各 RSS/微信频道的已打分候选（含近邻负例）。
+  提供 GitHub 全量打分项目 + 各 RSS/微信频道的规则阶段完整候选池
+  （含进入初筛但落选的近邻负例，以及更早期被规则淘汰的条目）。
 - data/history/*.json —— 每次运行都落盘，提供 GitHub 全量打分候选池的广覆盖。
 
 输出 eval/data/candidates.jsonl：按日唯一的候选记录（item_id 去重）。

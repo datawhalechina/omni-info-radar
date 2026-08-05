@@ -36,12 +36,17 @@ def _pool_key(candidate: Candidate) -> tuple[str, str]:
 
 
 def near_miss_pairs(pool: list[Candidate]) -> list[Candidate]:
-    """在每个竞争池内，为每个入选项取分数最高的落选项作为难负例。"""
+    """每个竞争池内，为每个入选项配一个分数最高的落选项作难负例，**交错返回**。
+
+    返回顺序为 [入选1, 难负例1, 入选2, 难负例2, ...]，保证按序截断到配额时，
+    优先保留完整的"入选+难负例"对，而不是先把入选项占满、把难负例挤掉。
+    """
     picked = [c for c in pool if c.picked]
     rejected = sorted((c for c in pool if not c.picked), key=lambda c: -c.final_score)
-    forced: list[Candidate] = list(picked)
     used: set[str] = set()
-    for _ in picked:
+    forced: list[Candidate] = []
+    for pick in picked:
+        forced.append(pick)
         for candidate in rejected:
             if candidate.dedup_key not in used:
                 forced.append(candidate)
@@ -62,12 +67,17 @@ def _tercile(values: list[float]) -> tuple[float, float]:
 def stratified_fill(
     pool: list[Candidate], budget: int, rng: random.Random, taken: set[str]
 ) -> list[Candidate]:
-    """按分数三分位分层、尽量平衡入选/落选，补足剩余名额。"""
+    """按分数三分位分层、尽量平衡入选/落选，补足剩余名额。
+
+    budget 是本频道还需补足的名额（已由调用方按 per_kind - 已选 计算）；
+    taken 仅用于跨频道/跨池去重，不重复扣减名额。
+    """
+    remaining = budget
     low, high = _tercile([c.final_score for c in pool])
     buckets: dict[str, list[Candidate]] = defaultdict(list)
     for candidate in pool:
         if candidate.dedup_key in taken:
-            continue
+            continue  # 已被强制集或其他频道占用，跳过
         if candidate.final_score <= low:
             band = "low"
         elif candidate.final_score >= high:
@@ -80,14 +90,15 @@ def stratified_fill(
 
     picked_out: list[Candidate] = []
     keys = sorted(buckets)
-    while len(picked_out) < budget and any(buckets[k] for k in keys):
+    while remaining > 0 and any(buckets[k] for k in keys):
         for key in keys:  # 轮转各层，保证覆盖
-            if len(picked_out) >= budget:
+            if remaining <= 0:
                 break
             if buckets[key]:
                 chosen = buckets[key].pop()
                 picked_out.append(chosen)
                 taken.add(chosen.dedup_key)
+                remaining -= 1
     return picked_out
 
 
@@ -97,26 +108,30 @@ def sample(candidates: list[Candidate], per_kind: int, seed: int) -> list[Candid
     for candidate in candidates:
         pools[_pool_key(candidate)].append(candidate)
 
-    # 先按 kind 归集各竞争池产出的候选，再做内容去重与配额。
-    by_kind: dict[str, list[Candidate]] = defaultdict(list)
+    # 1) 每个竞争池产出的强制集：入选项与其近邻难负例**交错排列**，
+    #    保证即使配额紧张，每个入选项的难负例对也能整体进入（不被截掉）。
+    by_kind_forced: dict[str, list[Candidate]] = defaultdict(list)
     for pool in pools.values():
         for candidate in near_miss_pairs(pool):
-            by_kind[candidate.kind].append(candidate)
+            by_kind_forced[candidate.kind].append(candidate)
 
     selected: list[Candidate] = []
     taken: set[str] = set()
-    for kind in sorted(by_kind):
+    for kind in sorted(by_kind_forced):
         forced: list[Candidate] = []
-        for candidate in by_kind[kind]:  # 难负例优先且去重
+        for candidate in by_kind_forced[kind]:  # 交错去重，难负例随入选项保留
             if candidate.dedup_key not in taken:
                 forced.append(candidate)
                 taken.add(candidate.dedup_key)
-        selected.extend(forced[:per_kind])
+        forced = forced[:per_kind]
+        selected.extend(forced)
 
-        if len(forced) < per_kind:  # 用分层采样补足
+        # 2) 剩余名额仅按本频道独立计算，不串用此前频道的选择，
+        #    避免后续频道拿不到配额。
+        budget = per_kind - len(forced)
+        if budget > 0:
             kind_pool = [c for c in candidates if c.kind == kind]
-            fill = stratified_fill(kind_pool, per_kind - len(selected), rng, taken)
-            selected.extend(fill)
+            selected.extend(stratified_fill(kind_pool, budget, rng, taken))
 
     rng.shuffle(selected)
     return selected

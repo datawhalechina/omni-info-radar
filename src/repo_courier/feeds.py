@@ -352,8 +352,9 @@ def analyze_channel_items(
         len(shortlist),
         len(picks),
     )
-    # shortlist 是完整已打分候选池：picks 是其中被选中的对象引用（已写回 pick_rank），
-    # 其余为被淘汰的近邻负例。整体导出供离线评测计算 precision/recall 与难负例。
+    # candidates 导出规则阶段的完整候选池 items（含未进入 LLM 初筛的条目），
+    # 使离线评测可计算筛选阶段的 recall 与"漏选"分析；其中进入初筛的条目
+    # 带有 LLM 打分，入选条目带有 pick_rank，落选条目即近邻负例。
     return ChannelRun(
         channel_id,
         title,
@@ -361,7 +362,7 @@ def analyze_channel_items(
         len(items),
         len(shortlist),
         errors,
-        candidates=list(shortlist),
+        candidates=list(items),
     )
 
 

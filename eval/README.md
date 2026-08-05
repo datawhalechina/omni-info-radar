@@ -34,7 +34,7 @@
 ## 使用步骤
 
 ```bash
-# Phase 0：开启候选池导出后运行（候选池含被淘汰的近邻负例）
+# Phase 0：开启候选池导出后运行（含规则阶段完整候选池，覆盖近邻负例与早期落选条目）
 REPO_COURIER_EVAL_DUMP=on uv run repo-courier --channels all --dry-run
 #   或在 config.yaml 的 report 段设 eval_dump: true
 
