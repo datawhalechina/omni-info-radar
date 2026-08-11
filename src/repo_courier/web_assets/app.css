@@ -780,6 +780,17 @@ select:focus {
   display: none;
 }
 
+.key-panel.is-disabled {
+  background: var(--paper);
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.key-panel.is-disabled summary {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .key-provider {
   display: flex;
   min-width: 0;
@@ -1937,6 +1948,18 @@ html[lang="en"] .compact-hero h1 {
   font-size: 6px;
   font-weight: 800;
   letter-spacing: 0.04em;
+}
+
+.source-option.is-disabled {
+  border-style: dashed;
+  background: var(--paper);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.source-option.is-disabled:hover {
+  border-color: var(--line);
 }
 
 .source-option:has(input:checked) {

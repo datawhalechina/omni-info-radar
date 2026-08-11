@@ -98,6 +98,8 @@ const I18N = {
     sourceWechatDescription: "机器之心、量子位、新智元等公众号文章",
     fallbackSourceDescription: "{count} 个 RSS / Atom 信息源",
     needsApiKey: "需要 API Key",
+    sourceUnavailable: "上游接口已失效，暂不可用",
+    unavailable: "不可用",
     channelConfigError: "频道配置读取失败",
     wechatDefaultKey: "已有默认 Key，可选填覆盖",
     wechatPreset: "读取预设公众号文章",
@@ -210,6 +212,8 @@ const I18N = {
     sourceWechatDescription: "Selected Chinese AI and technology publications",
     fallbackSourceDescription: "{count} RSS / Atom feeds",
     needsApiKey: "API key required",
+    sourceUnavailable: "Upstream API is no longer available",
+    unavailable: "Unavailable",
     channelConfigError: "Could not load channel configuration",
     wechatDefaultKey: "Default key available; optionally override it",
     wechatPreset: "Read selected WeChat publications",
@@ -292,6 +296,9 @@ const SOURCE_PRESENTATION = {
   security: { icon: "S", titleKey: "sourceSecurity", descriptionKey: "sourceSecurityDescription" },
   wechat: { icon: "微", titleKey: "sourceWechat", descriptionKey: "sourceWechatDescription" },
 };
+
+// 上游抓取接口已失效，界面上置灰而非移除，便于后续恢复。
+const DISABLED_SOURCES = new Set(["wechat"]);
 
 const AI_PROVIDERS = {
   openai: { label: "OpenAI", baseUrl: "https://api.openai.com/v1", model: "" },
@@ -379,14 +386,20 @@ function sourceCard(source, checkedSources) {
   const description = presentation.descriptionKey
     ? t(presentation.descriptionKey)
     : t("fallbackSourceDescription", { count: source.source_count || 0 });
-  const sourceLabel = `${title}，${description}`;
+  const disabled = DISABLED_SOURCES.has(source.id);
+  const hint = disabled ? `${description}（${t("sourceUnavailable")}）` : description;
+  const sourceLabel = `${title}，${hint}`;
   const keyHint = source.requires_key
     ? `<small class="source-key-hint" title="${escapeHtml(t("needsApiKey"))}">KEY</small>`
     : "";
-  const checked = checkedSources ? checkedSources.has(source.id) : source.default;
+  const checked = disabled
+    ? false
+    : checkedSources
+      ? checkedSources.has(source.id)
+      : source.default;
   return `
-    <label class="source-option" title="${escapeHtml(description)}">
-      <input type="checkbox" name="sources" value="${escapeHtml(source.id)}" aria-label="${escapeHtml(sourceLabel)}" ${checked ? "checked" : ""} />
+    <label class="source-option${disabled ? " is-disabled" : ""}" title="${escapeHtml(hint)}">
+      <input type="checkbox" name="sources" value="${escapeHtml(source.id)}" aria-label="${escapeHtml(sourceLabel)}" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""} />
       <span class="source-checkbox" aria-hidden="true">✓</span>
       <span class="source-title">${escapeHtml(title)}</span>${keyHint}
     </label>`;
@@ -397,18 +410,29 @@ function renderSources(sources, checkedSources = null) {
   sources.forEach((source) => sourceCatalog.set(source.id, source));
   const wechatSource = sources.find((source) => source.id === "wechat");
   const hasServerWechatKey = Boolean(wechatSource && !wechatSource.requires_key);
+  const wechatDisabled = DISABLED_SOURCES.has("wechat");
   wechatKeyPanel.hidden = !wechatSource;
   wechatKeyPanel.open = false;
+  wechatKeyPanel.classList.toggle("is-disabled", wechatDisabled);
+  wechatKeyPanel.querySelector("summary").tabIndex = wechatDisabled ? -1 : 0;
+  wechatKeyInput.disabled = wechatDisabled;
+  wechatKeyPanel.querySelector(".reveal-key").disabled = wechatDisabled;
   keyList.classList.toggle("without-wechat", !wechatSource);
-  wechatKeySummary.textContent = hasServerWechatKey
-    ? t("wechatDefaultKey")
-    : t("wechatPreset");
-  wechatKeyAction.querySelector("[data-key-action-label]").textContent = hasServerWechatKey
-    ? t("optional")
-    : t("add");
-  wechatKeyNote.innerHTML = hasServerWechatKey
-    ? t("wechatServerNote")
-    : t("wechatRequestNote");
+  if (wechatDisabled) {
+    wechatKeySummary.textContent = t("sourceUnavailable");
+    wechatKeyAction.querySelector("[data-key-action-label]").textContent = t("unavailable");
+    wechatKeyNote.textContent = t("sourceUnavailable");
+  } else {
+    wechatKeySummary.textContent = hasServerWechatKey
+      ? t("wechatDefaultKey")
+      : t("wechatPreset");
+    wechatKeyAction.querySelector("[data-key-action-label]").textContent = hasServerWechatKey
+      ? t("optional")
+      : t("add");
+    wechatKeyNote.innerHTML = hasServerWechatKey
+      ? t("wechatServerNote")
+      : t("wechatRequestNote");
+  }
   sourceGrid.innerHTML = sources.map((source) => sourceCard(source, checkedSources)).join("");
   sourceGrid.querySelectorAll('input[name="sources"]').forEach((input) => {
     input.addEventListener("change", updateSourceCount);
