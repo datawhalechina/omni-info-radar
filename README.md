@@ -71,7 +71,7 @@ uv run repo-courier --channels all --dry-run
 | :---- | :---- | :---- |
 | Sizhou Chen | 项目负责人，核心贡献者 | [Datawhale 核心成员](https://github.com/jjyaoao) |
 | Hanchen Qiu | 项目负责人，核心贡献者 | [在读SE的🏓选手](https://github.com/JOJOCrazy123) |
-| Zihan Wu | 核心贡献者 | [阿里云开发人员](https://github.com/2132wzh) |
+| Zihan Wu | 项目负责人，核心贡献者 | [阿里云开发人员](https://github.com/2132wzh) |
 
 ## 参与贡献
 
