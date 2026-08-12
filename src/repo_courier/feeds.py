@@ -352,7 +352,18 @@ def analyze_channel_items(
         len(shortlist),
         len(picks),
     )
-    return ChannelRun(channel_id, title, picks, len(items), len(shortlist), errors)
+    # candidates 导出规则阶段的完整候选池 items（含未进入 LLM 初筛的条目），
+    # 使离线评测可计算筛选阶段的 recall 与"漏选"分析；其中进入初筛的条目
+    # 带有 LLM 打分，入选条目带有 pick_rank，落选条目即近邻负例。
+    return ChannelRun(
+        channel_id,
+        title,
+        picks,
+        len(items),
+        len(shortlist),
+        errors,
+        candidates=list(items),
+    )
 
 
 def _select_with_keyword_coverage(

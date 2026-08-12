@@ -101,6 +101,9 @@ class ReportConfig:
     data_dir: str = "data/history"
     title: str = "RepoCourier · GitHub Trending 日报"
     product_display_names: dict[str, str] = field(default_factory=dict)
+    # 开启后额外导出 reports/{date}/eval_candidates.json（完整候选池），
+    # 供离线去噪质量评测使用；默认关闭，不影响常规报告产物。
+    eval_dump: bool = False
 
 
 @dataclass(slots=True)
@@ -174,6 +177,9 @@ def load_config(path: str | Path = "config/config.yaml") -> AppConfig:
     interests = os.getenv("REPO_COURIER_INTERESTS", "")
     if interests:
         profile.interests = [item.strip() for item in interests.split(",") if item.strip()]
+    eval_dump = os.getenv("REPO_COURIER_EVAL_DUMP", "")
+    if eval_dump:
+        report.eval_dump = _env_bool("REPO_COURIER_EVAL_DUMP", eval_dump)
     return AppConfig(
         github=github,
         repo_llm=repo_llm,
