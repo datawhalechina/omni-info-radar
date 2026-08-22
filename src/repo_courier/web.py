@@ -32,6 +32,7 @@ OFFICIAL_AI_BASE_URLS = (
     "https://api.moonshot.cn/v1",
     "https://api.minimaxi.com/v1",
     "https://api.stepfun.com/v1",
+    "https://www.dmxapi.cn/v1",
 )
 SUPPORTED_LANGUAGES = {"", "python", "javascript", "typescript", "go", "rust", "java"}
 MAX_REQUEST_BYTES = 16 * 1024

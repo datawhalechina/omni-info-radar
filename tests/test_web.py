@@ -289,6 +289,22 @@ def test_official_openai_compatible_providers_are_allowed_by_default(monkeypatch
         assert endpoint.endswith("/chat/completions")
 
 
+def test_dmxapi_root_normalizes_to_chat_completions(monkeypatch) -> None:
+    monkeypatch.delenv("REPO_COURIER_ALLOWED_AI_BASE_URLS", raising=False)
+    payload = web.PreviewRequest(
+        interests=["agent"],
+        ai_base_url="https://www.dmxapi.cn/v1",
+        ai_model="gpt-5.6-sol",
+        ai_api_key="secret",
+    )
+
+    endpoint, model, key = web.validate_ai_settings(payload)
+
+    assert endpoint == "https://www.dmxapi.cn/v1/chat/completions"
+    assert model == "gpt-5.6-sol"
+    assert key == "secret"
+
+
 def test_ai_base_url_accepts_root_and_normalizes_endpoint(monkeypatch) -> None:
     monkeypatch.setenv(
         "REPO_COURIER_ALLOWED_AI_BASE_URLS",
