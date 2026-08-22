@@ -307,6 +307,7 @@ const AI_PROVIDERS = {
   kimi: { label: "Kimi", baseUrl: "https://api.moonshot.cn/v1", model: "kimi-k2.6" },
   minimax: { label: "MiniMax", baseUrl: "https://api.minimaxi.com/v1", model: "MiniMax-M2.7" },
   stepfun: { label: "StepFun", baseUrl: "https://api.stepfun.com/v1", model: "step-3.5-flash" },
+  dmxapi: { label: "DMXAPI", baseUrl: "https://www.dmxapi.cn/v1", model: "gpt-5.6-sol" },
 };
 
 const FALLBACK_SOURCES = [
