@@ -54,6 +54,40 @@ class ReportWriter:
         )
         return paths
 
+    def write_eval_dump(
+        self, report: DailyReport, all_repositories: list[Repository], day: date
+    ) -> Path:
+        """导出完整候选池供离线评测：GitHub 全量打分项目 + 各频道已打分候选（含近邻负例）。
+
+        与 write() 的 daily.json 不同，此文件保留被淘汰的候选，以便计算
+        去噪层的 precision/recall 与排序层的难负例对比。仅在 report.eval_dump 开启时调用。
+        """
+        output_dir = Path(self.config.output_dir) / day.isoformat()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / "eval_candidates.json"
+        payload = {
+            "date": day.isoformat(),
+            "rss_window": report.rss_window,
+            "github": {
+                "scanned_count": len(all_repositories),
+                "candidates": [item.to_dict() for item in all_repositories],
+            },
+            "rss_channels": {
+                channel_id: {
+                    "title": channel.title,
+                    "scanned_count": channel.scanned_count,
+                    "llm_candidate_count": channel.llm_candidate_count,
+                    "candidates": channel.candidates_to_dict(),
+                    "errors": channel.errors,
+                }
+                for channel_id, channel in report.rss_channels.items()
+            },
+        }
+        path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        return path
+
     def markdown(self, report: DailyReport, day: date) -> str:
         lines = [
             f"# {self.config.title}",

@@ -13,6 +13,8 @@ build/
 # Local generated reports and runtime data
 /reports/
 /data/
+# Generated benchmark data (gold.example.jsonl under eval/ stays versioned)
+/eval/data/
 
 # Version-controlled example reports and data
 !/example_reports/

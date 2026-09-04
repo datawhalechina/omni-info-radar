@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from pathlib import Path
 
@@ -30,6 +30,8 @@ class RunResult:
     history_path: Path | None
     push_results: list[PushResult]
     ran_github: bool
+    all_repositories: list[Repository] = field(default_factory=list)
+    eval_candidates_path: Path | None = None
 
 
 def run(
@@ -120,6 +122,11 @@ def run(
     report_paths = writer.write(daily, report_day)
     logger.info("报告已生成: %s", report_paths["markdown"])
 
+    eval_candidates_path: Path | None = None
+    if config.report.eval_dump:
+        eval_candidates_path = writer.write_eval_dump(daily, repositories, report_day)
+        logger.info("评测候选池已导出: %s", eval_candidates_path)
+
     push_results: list[PushResult] = []
     has_rss_items = any(channel.items for channel in channel_runs.values())
     if config.push.enabled and not dry_run and (picks or has_rss_items):
@@ -140,4 +147,6 @@ def run(
         history_path=history_path,
         push_results=push_results,
         ran_github=run_github,
+        all_repositories=repositories,
+        eval_candidates_path=eval_candidates_path,
     )
